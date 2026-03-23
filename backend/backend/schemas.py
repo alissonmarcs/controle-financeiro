@@ -7,3 +7,6 @@ class Expense(BaseModel):
 
 class ExpenseDBItem(Expense):
     id: int = Field(ge=1)
+
+class ExpenseDB(BaseModel):
+    expenses: list[ExpenseDBItem]

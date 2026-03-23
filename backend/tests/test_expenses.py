@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
-from backend.app import app, expenses_fake_db
+from backend.app import app
+from backend.routers.expenses import expenses_fake_db
 
 client = TestClient(app)
 
@@ -61,3 +62,49 @@ def test_create_expense_increments_id() -> None:
 	assert first_response.json()['id'] == 1
 	assert second_response.json()['id'] == 2
 	assert len(expenses_fake_db) == 2
+
+
+def test_list_expenses_returns_empty_list() -> None:
+	response = client.get('/expenses/')
+
+	assert response.status_code == 200
+	assert response.json() == {'expenses': []}
+
+
+def test_list_expenses_returns_created_expenses() -> None:
+	payloads = [
+		{
+			'title': 'Mercado',
+			'description': 'Compra do mes',
+			'value': 300,
+		},
+		{
+			'title': 'Luz',
+			'description': 'Conta de energia',
+			'value': 180,
+		},
+	]
+
+	for payload in payloads:
+		create_response = client.post('/expenses/', json=payload)
+		assert create_response.status_code == 201
+
+	response = client.get('/expenses/')
+
+	assert response.status_code == 200
+	assert response.json() == {
+		'expenses': [
+			{
+				'id': 1,
+				'title': 'Mercado',
+				'description': 'Compra do mes',
+				'value': 300,
+			},
+			{
+				'id': 2,
+				'title': 'Luz',
+				'description': 'Conta de energia',
+				'value': 180,
+			},
+		],
+	}
