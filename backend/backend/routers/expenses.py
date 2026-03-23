@@ -13,7 +13,7 @@ def create_expense(body: Expense):
     return new_expense
 
 @router.get('/expenses/', response_model=ExpenseDB)
-def list_expense():
+def list_expenses():
     return {'expenses': expenses_fake_db}
 
 
@@ -24,6 +24,18 @@ def update_expense(expense_id: int, body: Expense):
             updated_expense = ExpenseDBItem(id=expense_id, **body.model_dump())
             expenses_fake_db[index] = updated_expense
             return updated_expense
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail='Expense not found',
+    )
+
+@router.delete('/expenses/{expense_id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_expense(expense_id: int):
+    for index, expense in enumerate(expenses_fake_db):
+        if expense.id == expense_id:
+            del expenses_fake_db[index]
+            return
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,

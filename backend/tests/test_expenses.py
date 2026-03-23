@@ -150,3 +150,28 @@ def test_update_expense_returns_404_when_not_found() -> None:
 
 	assert response.status_code == 404
 	assert response.json() == {'detail': 'Expense not found'}
+
+
+def test_delete_expense_returns_204_and_removes_item() -> None:
+	payload = {
+		'title': 'Streaming',
+		'description': 'Assinatura mensal',
+		'value': 45,
+	}
+
+	create_response = client.post('/expenses/', json=payload)
+	assert create_response.status_code == 201
+	assert len(expenses_fake_db) == 1
+
+	delete_response = client.delete('/expenses/1')
+
+	assert delete_response.status_code == 204
+	assert delete_response.text == ''
+	assert len(expenses_fake_db) == 0
+
+
+def test_delete_expense_returns_404_when_not_found() -> None:
+	response = client.delete('/expenses/999')
+
+	assert response.status_code == 404
+	assert response.json() == {'detail': 'Expense not found'}
