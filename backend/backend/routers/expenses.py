@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, status
 from backend.schemas import Expense, ExpenseDBItem, ExpenseDB
 
 router = APIRouter()
@@ -15,3 +15,17 @@ def create_expense(body: Expense):
 @router.get('/expenses/', response_model=ExpenseDB)
 def list_expense():
     return {'expenses': expenses_fake_db}
+
+
+@router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)
+def update_expense(expense_id: int, body: Expense):
+    for index, expense in enumerate(expenses_fake_db):
+        if expense.id == expense_id:
+            updated_expense = ExpenseDBItem(id=expense_id, **body.model_dump())
+            expenses_fake_db[index] = updated_expense
+            return updated_expense
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail='Expense not found',
+    )

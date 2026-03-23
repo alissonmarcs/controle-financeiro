@@ -108,3 +108,45 @@ def test_list_expenses_returns_created_expenses() -> None:
 			},
 		],
 	}
+
+
+def test_update_expense_returns_updated_expense() -> None:
+	create_payload = {
+		'title': 'Academia',
+		'description': 'Mensalidade',
+		'value': 99,
+	}
+	update_payload = {
+		'title': 'Academia Premium',
+		'description': 'Plano anual',
+		'value': 120,
+	}
+
+	create_response = client.post('/expenses/', json=create_payload)
+	assert create_response.status_code == 201
+
+	update_response = client.put('/expenses/1', json=update_payload)
+
+	assert update_response.status_code == 200
+	assert update_response.json() == {
+		'id': 1,
+		'title': 'Academia Premium',
+		'description': 'Plano anual',
+		'value': 120,
+	}
+	assert len(expenses_fake_db) == 1
+	assert expenses_fake_db[0].title == 'Academia Premium'
+	assert expenses_fake_db[0].description == 'Plano anual'
+
+
+def test_update_expense_returns_404_when_not_found() -> None:
+	update_payload = {
+		'title': 'Agua',
+		'description': 'Conta de agua',
+		'value': 70,
+	}
+
+	response = client.put('/expenses/999', json=update_payload)
+
+	assert response.status_code == 404
+	assert response.json() == {'detail': 'Expense not found'}
