@@ -1,0 +1,65 @@
+## o que é dataclass ?
+
+## `from contextlib import contextmanager`
+
+## todas as fixtures dever ter o `yield ` ?
+
+## em `def test_db_create_expense(session, mock_db_time):`, o pytest faz o invoke das fixtures `session` e `mock_db_time` ?
+
+Acredito que sim.
+
+```python
+# conftest.py
+
+@pytest.fixture
+def session():
+    engine = create_engine('sqlite:///:memory:') 
+
+    table_registry.metadata.create_all(engine)
+
+    # session = Session(engine)
+    with Session (engine) as session:
+        yield session
+
+    table_registry.metadata.drop_all(engine)
+    engine.dispose()
+
+@contextmanager
+def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
+
+    def fake_time_hook(mapper, connectionn, target):
+        if hasattr(target, 'created_at'):
+            target.created_at = time
+
+    event.listen(model, 'before_insert', fake_time_hook)
+
+    yield time
+
+    event.remove(model, 'before_insert', fake_time_hook)
+
+@pytest.fixture
+def mock_db_time():
+    return _mock_db_time
+```
+
+```python
+# test_db.py
+
+def test_db_create_expense(session, mock_db_time):
+
+    with mock_db_time(model=Expense) as time:
+        item = Expense(value=42, title='estacionamento', description='estacionamento do domingo')
+        session.add(item)
+        session.commit()
+
+    query_result = session.scalar(select(Expense).where(Expense.title == 'estacionamento'))
+
+    assert query_result.title == 'estacionamento'
+    assert query_result.created_at == time
+```
+
+Veja que dentro de `test_db_create_expense`, `session` é um objeto e `mock_db_time` é uma função, e isso condiz com a definição dessas duas fixtures em `conftest.py`
+
+Um dos motivos de `session` ser parâmetro de `test_db_create_expense`, é que a fixture `session` faz o setup de um DB de testes. Antes de `test_db_create_expense` ser executada, `session` é executada, assim `test_db_create_expense` já inicia com um DB pronto para os testes.
+
+`mock_db_time` é uma função que retorna uma função gerenciadora de contexto. Por essa razao, `mock_db_time` deve ser executado, e dentro de um `with`. `mock_db_time` faz o setup de um hook para o evento `before_insert`, e depois remove esse hook.
