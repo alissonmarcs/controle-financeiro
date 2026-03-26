@@ -117,3 +117,6 @@ e criamos nossa primeira migration, que cria a tabela `Expanses` no DB.
 - Em DEV, são criadas através de migrations.
 - Em PROD, são criadas através de migrations.
 - Em testes, são criadas automaticamente por fixtures do pytest.
+
+## Porque as sessions de DB devem ser fechadas após a response ?
+
