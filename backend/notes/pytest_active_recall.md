@@ -103,3 +103,12 @@ class Settings(BaseSettings):
 
 O script python acima será executado de qual pasta ?
 
+## É possível configurar o alembic para criar migrations para o DB em memória ?
+
+No final da aula 04, configuramos o alembic para criar migrations.
+
+O alembic acessa nosso esquema de tabelas (models), e a URL de conexao para o SQLite, via uma classe de config ( pacote pydantic_settings) que faz o load do nosso .env.
+
+e criamos nossa primeira migration, que cria a tabela `Expanses` no DB.
+
+
