@@ -63,3 +63,43 @@ Veja que dentro de `test_db_create_expense`, `session` é um objeto e `mock_db_t
 Um dos motivos de `session` ser parâmetro de `test_db_create_expense`, é que a fixture `session` faz o setup de um DB de testes. Antes de `test_db_create_expense` ser executada, `session` é executada, assim `test_db_create_expense` já inicia com um DB pronto para os testes.
 
 `mock_db_time` é uma função que retorna uma função gerenciadora de contexto. Por essa razao, `mock_db_time` deve ser executado, e dentro de um `with`. `mock_db_time` faz o setup de um hook para o evento `before_insert`, e depois remove esse hook.
+
+## Como ver a definição de classes de pacotes ?
+
+Exemplo:
+
+```python
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict( 
+        env_file='.env', env_file_encoding='utf-8'
+    )
+
+    DATABASE_URL: str = Field(init=False)
+```
+
+Como localizar a definição de `SettingsConfigDict` ?
+
+## Módulos de pacotes usam qual folder relativa para ler arquivos ?
+
+Exemplo:
+
+```python
+# backend/backend/settings.py
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict( 
+        env_file='.env', env_file_encoding='utf-8'
+    )
+
+    DATABASE_URL: str = Field(init=False)
+```
+
+O script python acima será executado de qual pasta ?
+
