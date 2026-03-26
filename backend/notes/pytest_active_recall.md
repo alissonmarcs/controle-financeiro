@@ -112,3 +112,8 @@ O alembic acessa nosso esquema de tabelas (models), e a URL de conexao para o SQ
 e criamos nossa primeira migration, que cria a tabela `Expanses` no DB.
 
 
+## Nos ambientes DEV, PROD e testes, como as tabelas de DB são criadas ?
+
+- Em DEV, são criadas através de migrations.
+- Em PROD, são criadas através de migrations.
+- Em testes, são criadas automaticamente por fixtures do pytest.
