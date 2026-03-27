@@ -16,5 +16,6 @@ def test_db_create_expense(session, mock_db_time):
         'value' : 42,
         'title': 'estacionamento',
         'description' : 'estacionamento do domingo',
-        'created_at' : time
+        'created_at' : time,
+        'updated_at' : time
     }

@@ -1,15 +1,38 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from backend.schemas import Expense, ExpenseDBItem, ExpenseDB
+
+from http import HTTPStatus
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from backend.database import get_session
+
+from backend import models
 
 router = APIRouter()
 
 expenses_fake_db: list[ExpenseDBItem] = []
 
-@router.post('/expenses/', response_model=ExpenseDBItem, status_code=status.HTTP_201_CREATED)
-def create_expense(body: Expense):
-    new_expense_id = len(expenses_fake_db) + 1
-    new_expense = ExpenseDBItem(id=new_expense_id, **body.model_dump())
-    expenses_fake_db.append(new_expense)
+@router.post('/expenses/', response_model=ExpenseDBItem, status_code=HTTPStatus.CREATED)
+def create_expense(body: Expense, db_session: Session = Depends(get_session)):
+
+    query_result = db_session.scalar(
+        select(models.Expense).where(
+            (models.Expense.title == body.title)
+        )
+    ) 
+
+    if query_result:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Title already exists'
+        )
+
+    new_expense = models.Expense(title=body.title, description=body.description, value=body.value)
+    db_session.add(new_expense)
+    db_session.commit()
+    db_session.refresh(new_expense)
+
     return new_expense
 
 @router.get('/expenses/', response_model=ExpenseDB)

@@ -120,3 +120,35 @@ e criamos nossa primeira migration, que cria a tabela `Expanses` no DB.
 
 ## Porque as sessions de DB devem ser fechadas após a response ?
 
+## `DATABASE_URL` é parametro da classe ou da instância ?
+
+Exemplo:
+
+```python
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict( 
+        env_file='.env', env_file_encoding='utf-8'
+    )
+
+    DATABASE_URL: str = Field(init=False)
+```
+
+
+## Sempre o alembic consegue detectar as alterações de DB automaticamente ?
+
+## Como fazer com que os testes de endpoint usem o DB em memória ?
+
+## Quando usar o segundo e terceiro parametros de `create_engine()` ?
+
+```python
+    engine = create_engine(
+        'sqlite:///:memory:',
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+        ) 
+```
+
