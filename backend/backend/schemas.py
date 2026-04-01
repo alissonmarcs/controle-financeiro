@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class Expense(BaseModel):
     title: str 
@@ -7,6 +7,7 @@ class Expense(BaseModel):
 
 class ExpenseDBItem(Expense):
     id: int = Field(ge=1)
+    model_config = ConfigDict(from_attributes=True)
 
 class ExpenseDB(BaseModel):
     expenses: list[ExpenseDBItem]

@@ -36,8 +36,13 @@ def create_expense(body: Expense, db_session: Session = Depends(get_session)):
     return new_expense
 
 @router.get('/expenses/', response_model=ExpenseDB)
-def list_expenses():
-    return {'expenses': expenses_fake_db}
+def list_expenses(
+        db_session: Session = Depends(get_session),
+        skip: int = 0,
+        limit: int = 100
+):
+    expenses = db_session.scalars(select(models.Expense).offset(skip).limit(limit)).all()
+    return {'expenses': expenses}
 
 
 @router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)

@@ -152,3 +152,14 @@ class Settings(BaseSettings):
         ) 
 ```
 
+## como funciona a `model_validate` ?
+
+```python
+@router.get('/expenses/', response_model=ExpenseDB)
+def list_expenses(db_session: Session = Depends(get_session)):
+    # result = db_session.execute(select(models.Expense)).scalars().all()
+    expenses = [ExpenseDBItem.model_validate(expense) for expense in result]
+    return {'expenses': expenses}
+```
+
+## qual o funcionamento de `model_validade()` e `model_dump()` ?
