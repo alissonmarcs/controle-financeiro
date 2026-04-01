@@ -5,6 +5,7 @@ from http import HTTPStatus
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from backend.database import get_session
 
 from backend import models
@@ -46,17 +47,30 @@ def list_expenses(
 
 
 @router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)
-def update_expense(expense_id: int, body: Expense):
-    for index, expense in enumerate(expenses_fake_db):
-        if expense.id == expense_id:
-            updated_expense = ExpenseDBItem(id=expense_id, **body.model_dump())
-            expenses_fake_db[index] = updated_expense
-            return updated_expense
+def update_expense(
+        expense_id: int,
+        body: Expense,
+        db_session: Session = Depends(get_session)
+):
+    expense = db_session.scalar(select(models.Expense).where(models.Expense.id == expense_id))
+    if not expense:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
+        )
+    try:
+        expense.value           = body.value
+        expense.title           = body.title
+        expense.description     = body.description
+        db_session.commit()
+        db_session.refresh(expense)
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Title already exists'
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail='Expense not found',
-    )
+
+    return expense
 
 @router.delete('/expenses/{expense_id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(expense_id: int):

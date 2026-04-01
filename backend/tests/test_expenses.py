@@ -43,3 +43,51 @@ def test_list_expenses_should_return_list_whith_one_expense(client, expense):
 	assert  response.json() == {
 		'expenses': [expense_schema]
 	}
+
+def test_update_expense_should_return_updated_expense(client, expense):
+	body = {
+		'title' : 'mensalidade',
+		'description' : 'mensalidade estacionamento perto da 42',
+		'value' : 300,
+	}
+	response = client.put('/expenses/1', json=body)
+	assert response.status_code == HTTPStatus.OK
+	assert response.json() == {
+		'id': 1,
+		'title' : 'mensalidade',
+		'description' : 'mensalidade estacionamento perto da 42',
+		'value' : 300,
+	}
+	
+def test_update_expense_no_existent_expense_should_return_not_found(client, expense):
+	body = {
+		'title' : 'mensalidade',
+		'description' : 'mensalidade estacionamento perto da 42',
+		'value' : 300,
+	}
+	response = client.put('/expenses/999', json=body)
+	assert response.status_code == HTTPStatus.NOT_FOUND
+	assert response.json() == {
+		'detail': 'User not found'
+	}
+
+def test_update_expense_existing_title_should_return_conflict(client, expense):
+	new_expense = {
+		'title' : 'mensalidade',
+		'description' : 'mensalidade estacionamento perto da 42',
+		'value' : 300,
+	}
+
+	client.post('/expenses/', json=new_expense)
+	response = client.put(
+		f'/expenses/{expense.id}',
+		json={
+			'title' : 'mensalidade',
+			'description' : 'ida aos correios',
+			'value' : 200,
+		}
+	)
+	assert response.status_code == HTTPStatus.CONFLICT
+	assert response.json() == {
+		'detail': 'Title already exists'
+	}
