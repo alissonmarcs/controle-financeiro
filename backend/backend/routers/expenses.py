@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from backend.schemas import Expense, ExpenseDBItem, ExpenseDB
+from backend.schemas import Expense, ExpenseDBItem, ExpenseDB, Message
 
 from http import HTTPStatus
 
@@ -69,17 +69,21 @@ def update_expense(
             detail='Title already exists'
         )
 
-
     return expense
 
-@router.delete('/expenses/{expense_id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_expense(expense_id: int):
-    for index, expense in enumerate(expenses_fake_db):
-        if expense.id == expense_id:
-            del expenses_fake_db[index]
-            return
+@router.delete('/expenses/{expense_id}', response_model=Message)
+def delete_expense(
+        expense_id: int,
+        db_session: Session = Depends(get_session)
+):
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail='Expense not found',
-    )
+    expense = db_session.scalar(select(models.Expense).where(models.Expense.id == expense_id))
+
+    if not expense:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Expense not found',
+        )
+    db_session.delete(expense)
+    db_session.commit()
+    return {'message': 'Expense deleted'}

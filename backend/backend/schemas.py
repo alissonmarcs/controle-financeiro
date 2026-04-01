@@ -11,3 +11,6 @@ class ExpenseDBItem(Expense):
 
 class ExpenseDB(BaseModel):
     expenses: list[ExpenseDBItem]
+
+class Message(BaseModel):
+    message: str

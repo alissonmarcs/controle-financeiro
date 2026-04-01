@@ -91,3 +91,10 @@ def test_update_expense_existing_title_should_return_conflict(client, expense):
 	assert response.json() == {
 		'detail': 'Title already exists'
 	}
+
+def test_delete_expense_should_return_no_content(client, expense):
+	response = client.delete(f'/expenses/{expense.id}')
+	assert response.status_code == HTTPStatus.OK
+	assert response.json() == {
+		'message': 'Expense deleted'
+	}
