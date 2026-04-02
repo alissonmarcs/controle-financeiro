@@ -12,8 +12,6 @@ from backend import models
 
 router = APIRouter()
 
-expenses_fake_db: list[ExpenseDBItem] = []
-
 @router.post('/expenses/', response_model=ExpenseDBItem, status_code=HTTPStatus.CREATED)
 def create_expense(body: Expense, db_session: Session = Depends(get_session)):
 
