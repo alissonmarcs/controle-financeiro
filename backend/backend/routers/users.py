@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 
+from sqlalchemy import select
 
 from backend import schemas
 from backend import models
@@ -31,3 +32,26 @@ def create_user(
         )
 
     return new_user
+
+@router.get('/users/{user_id}', response_model=schemas.CreatedUser, status_code=HTTPStatus.OK)
+def get_user(
+        user_id: int,
+        db_session: Session = Depends(get_session),
+):
+    query_result = db_session.scalar(select(models.User).where(models.User.id == user_id))
+    if not query_result:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='User not found'
+        )
+    return query_result
+
+@router.get('/users/', response_model=schemas.CreatedUser , status_code=HTTPStatus.OK)
+def get_users(
+        db_session: Session = Depends(get_session),
+        skip: int = 0,
+        limit: int = 100
+):
+    query_result = db_session.scalars(select(models.User).offset(skip).limit(limit)).all()
+    return {'users': query_result}
+
