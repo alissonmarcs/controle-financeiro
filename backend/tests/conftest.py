@@ -1,5 +1,5 @@
 import pytest
-from backend.models import table_registry, Expense
+from backend.models import table_registry, Expense, User
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 from contextlib import contextmanager
@@ -46,6 +46,14 @@ def expense(session):
     session.commit()
     session.refresh(item)
     return item
+
+@pytest.fixture
+def db_user(session):
+    user = User(username='spiderman', email='spiderman@gmail.com', password='123456')
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
 
 @contextmanager
 def _mock_db_time(*, model, time=datetime(2024, 1, 1)):

@@ -14,3 +14,13 @@ class ExpenseDB(BaseModel):
 
 class Message(BaseModel):
     message: str
+
+class User(BaseModel):
+    username: str
+    email: str
+    password: str
+
+class CreatedUser(BaseModel):
+    id: int
+    username: str
+    email: str
