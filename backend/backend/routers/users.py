@@ -53,9 +53,5 @@ def get_users(
         limit: int = 100
 ):
     query_result = db_session.scalars(select(models.User).offset(skip).limit(limit)).all()
-    print("\n\nAQUIII\n\n")
-    print(query_result)
-    print(type(query_result ))
-    print(len(query_result))
     return {'users': query_result}
 
