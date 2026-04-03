@@ -46,12 +46,16 @@ def get_user(
         )
     return query_result
 
-@router.get('/users/', response_model=schemas.CreatedUser , status_code=HTTPStatus.OK)
+@router.get('/users/', response_model=schemas.Users , status_code=HTTPStatus.OK)
 def get_users(
         db_session: Session = Depends(get_session),
         skip: int = 0,
         limit: int = 100
 ):
     query_result = db_session.scalars(select(models.User).offset(skip).limit(limit)).all()
+    print("\n\nAQUIII\n\n")
+    print(query_result)
+    print(type(query_result ))
+    print(len(query_result))
     return {'users': query_result}
 

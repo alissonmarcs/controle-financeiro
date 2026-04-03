@@ -20,12 +20,12 @@ class User(BaseModel):
     email: str
     password: str
 
-class Users(BaseModel):
-    users: list[User]
-
 class CreatedUser(BaseModel):
     id: int
     username: str
     email: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class Users(BaseModel):
+    users: list[CreatedUser]
