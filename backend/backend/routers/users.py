@@ -53,5 +53,47 @@ def get_users(
         limit: int = 100
 ):
     query_result = db_session.scalars(select(models.User).offset(skip).limit(limit)).all()
+
     return {'users': query_result}
+
+@router.put('/users/{user_id}', response_model=schemas.CreatedUser, status_code=HTTPStatus.OK)
+def update_user(
+    user_id: int,
+    body: schemas.User,
+    db_session: Session = Depends(get_session)
+):
+    query_result = db_session.scalar(select(models.User).where(models.User.id == user_id))
+    if not query_result:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='User not exists'
+        )
+
+    try:
+        query_result.username = body.username
+        query_result.email = body.email
+        query_result.password = body.password
+        db_session.commit()
+        db_session.refresh(query_result)
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='Username or email already exists'
+        )
+    return query_result
+
+@router.delete('/users/{user_id}', response_model=schemas.Message)
+def delete_user(
+    user_id: int,
+    db_session: Session = Depends(get_session)
+):
+    user = db_session.scalar(select(models.User).where(models.User.id == user_id))
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='User not found'
+        )
+    db_session.delete(user)
+    db_session.commit()
+    return {'message': 'User deleted'}
 
