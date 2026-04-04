@@ -12,6 +12,8 @@ from http import HTTPStatus
 
 from sqlalchemy.exc import IntegrityError
 
+from backend.security import get_password_hash
+
 router = APIRouter()
 
 @router.post('/users/', response_model=schemas.CreatedUser, status_code=HTTPStatus.CREATED)
@@ -19,7 +21,8 @@ def create_user(
         body: schemas.User,
         db_session: Session = Depends(get_session)
 ):
-    new_user = models.User(username=body.username, email=body.email, password=body.password)
+    hashed_password = get_password_hash(body.password)
+    new_user = models.User(username=body.username, email=body.email, password=hashed_password)
 
     try:
         db_session.add(new_user)
