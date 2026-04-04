@@ -75,7 +75,7 @@ def update_user(
     try:
         query_result.username = body.username
         query_result.email = body.email
-        query_result.password = body.password
+        query_result.password = get_password_hash(body.password)
         db_session.commit()
         db_session.refresh(query_result)
     except IntegrityError:
