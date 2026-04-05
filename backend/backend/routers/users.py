@@ -12,7 +12,9 @@ from http import HTTPStatus
 
 from sqlalchemy.exc import IntegrityError
 
-from backend.security import get_password_hash
+from backend.security import get_password_hash, verify_password, create_access_token
+
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter()
 
@@ -100,3 +102,21 @@ def delete_user(
     db_session.commit()
     return {'message': 'User deleted'}
 
+@router.post('/token', response_model=schemas.Token)
+def get_access_token(
+   form_data: OAuth2PasswordRequestForm = Depends(),
+   db_session: Session = Depends(get_session)
+):
+    user = db_session.scalar(select(models.User).where(models.User.email == form_data.username))
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Incorrect email or password'
+        )
+    if not verify_password(form_data.password, user.password):
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Incorrect email or password'
+        )
+    token = create_access_token({'sub': user.email})
+    return {'access_token': token, 'token_type': 'bearer'}

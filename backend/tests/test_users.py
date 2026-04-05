@@ -134,3 +134,18 @@ def test_delete_user_should_retun_not_found(client):
     assert response.json() == {
             'detail': 'User not found'
     }
+
+def test_get_access_token(client, db_user):
+    response = client.post(
+        '/token',
+        data={
+           'username': db_user.email,
+           'password': db_user.plain_password 
+        }
+    )
+
+    response_json = response.json()
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in response_json
+    assert 'token_type' in response_json
+    assert response_json['token_type'] == 'bearer' 

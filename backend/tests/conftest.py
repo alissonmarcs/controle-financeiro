@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from contextlib import contextmanager
 from datetime import datetime
 
+from backend.security import get_password_hash
+
 from backend.app import app
 from backend.database import get_session
 
@@ -49,10 +51,12 @@ def expense(session):
 
 @pytest.fixture
 def db_user(session):
-    user = User(username='spiderman', email='spiderman@gmail.com', password='123456')
+    plain_password = '123456'
+    user = User(username='spiderman', email='spiderman@gmail.com', password=get_password_hash(plain_password))
     session.add(user)
     session.commit()
     session.refresh(user)
+    user.plain_password = plain_password
     return user
 
 @contextmanager

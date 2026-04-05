@@ -29,3 +29,7 @@ class CreatedUser(BaseModel):
 
 class Users(BaseModel):
     users: list[CreatedUser]
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
