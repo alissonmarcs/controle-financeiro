@@ -66,9 +66,10 @@ def test_get_users_populated_db_should_return_populated_list(client, db_user):
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': [db_user_pydantic_model]}
 
-def test_update_user_should_return_updated_user(client, db_user):
+def test_update_user_should_return_updated_user(client, db_user, token):
     response = client.put(
         '/users/1',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'batman',
             'email': 'batman@gmail.com',
@@ -80,9 +81,10 @@ def test_update_user_should_return_updated_user(client, db_user):
     assert response.status_code == HTTPStatus.OK
     assert response.json() == updated_user
 
-def test_update_user_should_return_not_found(client):
+def test_update_user_should_return_forbidden(client, token):
     response = client.put(
         '/users/999',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'batman',
             'email': 'batman@gmail.com',
@@ -90,12 +92,12 @@ def test_update_user_should_return_not_found(client):
         }
     )
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.status_code == HTTPStatus.FORBIDDEN
     assert response.json() == {
-        'detail': 'User not exists'
+        'detail': 'Not enough permissions'
     }
 
-def test_update_user_should_return_conflict(client, db_user):
+def test_update_user_should_return_conflict(client, db_user, token):
     user2 = {
             'username': 'Jhon',
             'email': 'jhon@gmail.com',
@@ -108,6 +110,7 @@ def test_update_user_should_return_conflict(client, db_user):
 
     response = client.put(
         f'/users/1',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': user2['username'],
             'email': 'batman@gmail.com',
@@ -120,19 +123,25 @@ def test_update_user_should_return_conflict(client, db_user):
         'detail': 'Username or email already exists'
     }
 
-def test_delete_user_should_return_ok(client, db_user):
-    response = client.delete(f'/users/{db_user.id}')
+def test_delete_user_should_return_ok(client, db_user, token):
+    response = client.delete(
+        f'/users/{db_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         'message': 'User deleted'
     }
 
-def test_delete_user_should_retun_not_found(client):
-    response = client.delete('/users/9999')
-    assert response.status_code == HTTPStatus.NOT_FOUND
+def test_delete_user_should_retun_not_found(client, token):
+    response = client.delete(
+        '/users/9999',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
     assert response.json() == {
-            'detail': 'User not found'
+            'detail': 'Not enough permissions'
     }
 
 def test_get_access_token(client, db_user):

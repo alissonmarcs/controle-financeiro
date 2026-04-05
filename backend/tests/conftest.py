@@ -59,6 +59,18 @@ def db_user(session):
     user.plain_password = plain_password
     return user
 
+@pytest.fixture
+def token(client, db_user):
+    response = client.post(
+        '/token',
+        data={
+            'username': db_user.email,
+            'password': db_user.plain_password
+        }
+    )
+
+    return response.json()['access_token']
+
 @contextmanager
 def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
 

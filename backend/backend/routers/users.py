@@ -7,6 +7,7 @@ from backend import models
 
 from sqlalchemy.orm import Session
 from backend.database import get_session
+from backend.security import get_current_user
 
 from http import HTTPStatus
 
@@ -65,40 +66,43 @@ def get_users(
 def update_user(
     user_id: int,
     body: schemas.User,
-    db_session: Session = Depends(get_session)
+    db_session: Session = Depends(get_session),
+    current_user: models.User = Depends(get_current_user)
 ):
-    query_result = db_session.scalar(select(models.User).where(models.User.id == user_id))
-    if not query_result:
+
+    if current_user.id != user_id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='User not exists'
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='Not enough permissions'
         )
 
     try:
-        query_result.username = body.username
-        query_result.email = body.email
-        query_result.password = get_password_hash(body.password)
+        current_user.username = body.username
+        current_user.email = body.email
+        current_user.password = get_password_hash(body.password)
         db_session.commit()
-        db_session.refresh(query_result)
+        db_session.refresh(current_user)
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
             detail='Username or email already exists'
         )
-    return query_result
+    return current_user
 
 @router.delete('/users/{user_id}', response_model=schemas.Message)
 def delete_user(
     user_id: int,
-    db_session: Session = Depends(get_session)
+    db_session: Session = Depends(get_session),
+    current_user: models.User = Depends(get_current_user)
 ):
-    user = db_session.scalar(select(models.User).where(models.User.id == user_id))
-    if not user:
+
+    if user_id != current_user.id:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='User not found'
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='Not enough permissions'
         )
-    db_session.delete(user)
+
+    db_session.delete(current_user)
     db_session.commit()
     return {'message': 'User deleted'}
 
