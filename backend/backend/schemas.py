@@ -33,3 +33,7 @@ class Users(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class Pagination(BaseModel):
+    limit: int = Field(100, ge=0)
+    offset: int = Field(0, ge=0)

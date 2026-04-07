@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from backend.schemas import Expense, ExpenseDBItem, ExpenseDB, Message
+from fastapi import APIRouter, HTTPException, status, Depends, Query
+from backend.schemas import Expense, ExpenseDBItem, ExpenseDB, Message, Pagination
 
 from http import HTTPStatus
 
@@ -41,10 +41,9 @@ def create_expense(body: Expense, db_session: DBSession):
 @router.get('/expenses/', response_model=ExpenseDB)
 def list_expenses(
         db_session: DBSession,
-        skip: int = 0,
-        limit: int = 100
+        paginator: Annotated[Pagination, Query()]
 ):
-    expenses = db_session.scalars(select(models.Expense).offset(skip).limit(limit)).all()
+    expenses = db_session.scalars(select(models.Expense).offset(paginator.offset).limit(paginator.limit)).all()
     return {'expenses': expenses}
 
 @router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)

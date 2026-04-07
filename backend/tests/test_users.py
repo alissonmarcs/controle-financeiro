@@ -66,6 +66,13 @@ def test_get_users_populated_db_should_return_populated_list(client, db_user):
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': [db_user_pydantic_model]}
 
+def test_get_users_negative_limit(client):
+    response = client.get(
+        '/users?offset=-1'
+    )
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_CONTENT
+
 def test_update_user_should_return_updated_user(client, db_user, token):
     response = client.put(
         '/users/1',

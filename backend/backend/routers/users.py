@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 
 from sqlalchemy import select
 
@@ -60,10 +60,9 @@ def get_user(
 @router.get('/users/', response_model=schemas.Users , status_code=HTTPStatus.OK)
 def get_users(
         db_session: DBSession,
-        skip: int = 0,
-        limit: int = 100
+        paginator: Annotated[schemas.Pagination, Query()]
 ):
-    query_result = db_session.scalars(select(models.User).offset(skip).limit(limit)).all()
+    query_result = db_session.scalars(select(models.User).offset(paginator.offset).limit(paginator.limit)).all()
 
     return {'users': query_result}
 
