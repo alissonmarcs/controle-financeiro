@@ -10,10 +10,14 @@ from backend.database import get_session
 
 from backend import models
 
+from typing import Annotated
+
+DBSession = Annotated[Session, Depends(get_session)]
+
 router = APIRouter()
 
 @router.post('/expenses/', response_model=ExpenseDBItem, status_code=HTTPStatus.CREATED)
-def create_expense(body: Expense, db_session: Session = Depends(get_session)):
+def create_expense(body: Expense, db_session: DBSession):
 
     query_result = db_session.scalar(
         select(models.Expense).where(
@@ -36,19 +40,18 @@ def create_expense(body: Expense, db_session: Session = Depends(get_session)):
 
 @router.get('/expenses/', response_model=ExpenseDB)
 def list_expenses(
-        db_session: Session = Depends(get_session),
+        db_session: DBSession,
         skip: int = 0,
         limit: int = 100
 ):
     expenses = db_session.scalars(select(models.Expense).offset(skip).limit(limit)).all()
     return {'expenses': expenses}
 
-
 @router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)
 def update_expense(
         expense_id: int,
         body: Expense,
-        db_session: Session = Depends(get_session)
+        db_session: DBSession
 ):
     expense = db_session.scalar(select(models.Expense).where(models.Expense.id == expense_id))
     if not expense:
@@ -72,7 +75,7 @@ def update_expense(
 @router.delete('/expenses/{expense_id}', response_model=Message)
 def delete_expense(
         expense_id: int,
-        db_session: Session = Depends(get_session)
+        db_session: DBSession 
 ):
 
     expense = db_session.scalar(select(models.Expense).where(models.Expense.id == expense_id))

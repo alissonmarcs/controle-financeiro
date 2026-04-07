@@ -17,12 +17,17 @@ from backend.security import get_password_hash, verify_password, create_access_t
 
 from fastapi.security import OAuth2PasswordRequestForm
 
+from typing import Annotated
+
+DBSession = Annotated[Session, Depends(get_session)]
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
+
 router = APIRouter()
 
 @router.post('/users/', response_model=schemas.CreatedUser, status_code=HTTPStatus.CREATED)
 def create_user(
         body: schemas.User,
-        db_session: Session = Depends(get_session)
+        db_session: DBSession
 ):
     hashed_password = get_password_hash(body.password)
     new_user = models.User(username=body.username, email=body.email, password=hashed_password)
@@ -42,7 +47,7 @@ def create_user(
 @router.get('/users/{user_id}', response_model=schemas.CreatedUser, status_code=HTTPStatus.OK)
 def get_user(
         user_id: int,
-        db_session: Session = Depends(get_session),
+        db_session: DBSession
 ):
     query_result = db_session.scalar(select(models.User).where(models.User.id == user_id))
     if not query_result:
@@ -54,7 +59,7 @@ def get_user(
 
 @router.get('/users/', response_model=schemas.Users , status_code=HTTPStatus.OK)
 def get_users(
-        db_session: Session = Depends(get_session),
+        db_session: DBSession,
         skip: int = 0,
         limit: int = 100
 ):
@@ -66,8 +71,8 @@ def get_users(
 def update_user(
     user_id: int,
     body: schemas.User,
-    db_session: Session = Depends(get_session),
-    current_user: models.User = Depends(get_current_user)
+    db_session: DBSession,
+    current_user: CurrentUser
 ):
 
     if current_user.id != user_id:
@@ -92,8 +97,8 @@ def update_user(
 @router.delete('/users/{user_id}', response_model=schemas.Message)
 def delete_user(
     user_id: int,
-    db_session: Session = Depends(get_session),
-    current_user: models.User = Depends(get_current_user)
+    db_session: DBSession, 
+    current_user: CurrentUser,
 ):
 
     if user_id != current_user.id:
@@ -108,8 +113,8 @@ def delete_user(
 
 @router.post('/token', response_model=schemas.Token)
 def get_access_token(
+   db_session: DBSession,
    form_data: OAuth2PasswordRequestForm = Depends(),
-   db_session: Session = Depends(get_session)
 ):
     user = db_session.scalar(select(models.User).where(models.User.email == form_data.username))
     if not user:
