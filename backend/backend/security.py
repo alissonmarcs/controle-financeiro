@@ -16,6 +16,8 @@ from sqlalchemy.orm import Session
 
 from backend.settings import Settings
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 password_hasher = PasswordHash.recommended()
 
 settings = Settings()
@@ -38,8 +40,8 @@ def verify_password(plain_password: str, hashed_password: str):
 
 token_extractor = OAuth2PasswordBearer(tokenUrl='token')
 
-def get_current_user(
-    db_session: Session = Depends(get_session),
+async def get_current_user(
+    db_session: AsyncSession = Depends(get_session),
     token: str = Depends(token_extractor)
 ):
     credentials_exception = HTTPException(
@@ -58,7 +60,7 @@ def get_current_user(
     except DecodeError:
         raise credentials_exception
 
-    user = db_session.scalar(select(models.User).where(models.User.email == subject_email))
+    user = await db_session.scalar(select(models.User).where(models.User.email == subject_email))
     if not user:
         raise credentials_exception
 
