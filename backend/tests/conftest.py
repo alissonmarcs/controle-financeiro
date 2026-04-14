@@ -46,12 +46,12 @@ async def session():
     async with engine.begin() as transaction:
         await transaction.run_sync(table_registry.metadata.drop_all)
 
-@pytest.fixture
-def expense(session):
+@pytest_asyncio.fixture
+async def expense(session):
     item = Expense(title='demo title', description='demo description', value=4242)
     session.add(item)
-    session.commit()
-    session.refresh(item)
+    await session.commit()
+    await session.refresh(item)
     return item
 
 @pytest.fixture
