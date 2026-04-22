@@ -14,7 +14,11 @@ from http import HTTPStatus
 
 from sqlalchemy.exc import IntegrityError
 
-from backend.security import get_password_hash, verify_password, create_access_token
+from backend.security import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+)
 
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -25,13 +29,17 @@ CurrentUser = Annotated[models.User, Depends(get_current_user)]
 
 router = APIRouter()
 
-@router.post('/users/', response_model=schemas.CreatedUser, status_code=HTTPStatus.CREATED)
-async def create_user(
-        body: schemas.User,
-        db_session: DBSession
-):
+
+@router.post(
+    '/users/',
+    response_model=schemas.CreatedUser,
+    status_code=HTTPStatus.CREATED,
+)
+async def create_user(body: schemas.User, db_session: DBSession):
     hashed_password = get_password_hash(body.password)
-    new_user = models.User(username=body.username, email=body.email, password=hashed_password)
+    new_user = models.User(
+        username=body.username, email=body.email, password=hashed_password
+    )
 
     try:
         db_session.add(new_user)
@@ -40,46 +48,55 @@ async def create_user(
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail='Username or email already exists'
+            detail='Username or email already exists',
         )
 
     return new_user
 
-@router.get('/users/{user_id}', response_model=schemas.CreatedUser, status_code=HTTPStatus.OK)
-async def get_user(
-        user_id: int,
-        db_session: DBSession
-):
-    query_result = await db_session.scalar(select(models.User).where(models.User.id == user_id))
+
+@router.get(
+    '/users/{user_id}',
+    response_model=schemas.CreatedUser,
+    status_code=HTTPStatus.OK,
+)
+async def get_user(user_id: int, db_session: DBSession):
+    query_result = await db_session.scalar(
+        select(models.User).where(models.User.id == user_id)
+    )
     if not query_result:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='User not found'
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
         )
     return query_result
 
-@router.get('/users/', response_model=schemas.Users , status_code=HTTPStatus.OK)
+
+@router.get('/users/', response_model=schemas.Users, status_code=HTTPStatus.OK)
 async def get_users(
-        db_session: DBSession,
-        paginator: Annotated[schemas.Pagination, Query()]
+    db_session: DBSession, paginator: Annotated[schemas.Pagination, Query()]
 ):
-    query = await db_session.scalars(select(models.User).offset(paginator.offset).limit(paginator.limit))
+    query = await db_session.scalars(
+        select(models.User).offset(paginator.offset).limit(paginator.limit)
+    )
 
     users = query.all()
     return {'users': users}
 
-@router.put('/users/{user_id}', response_model=schemas.CreatedUser, status_code=HTTPStatus.OK)
+
+@router.put(
+    '/users/{user_id}',
+    response_model=schemas.CreatedUser,
+    status_code=HTTPStatus.OK,
+)
 async def update_user(
     user_id: int,
     body: schemas.User,
     db_session: DBSession,
-    current_user: CurrentUser
+    current_user: CurrentUser,
 ):
 
     if current_user.id != user_id:
         raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail='Not enough permissions'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
     try:
@@ -91,42 +108,45 @@ async def update_user(
     except IntegrityError:
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
-            detail='Username or email already exists'
+            detail='Username or email already exists',
         )
     return current_user
+
 
 @router.delete('/users/{user_id}', response_model=schemas.Message)
 async def delete_user(
     user_id: int,
-    db_session: DBSession, 
+    db_session: DBSession,
     current_user: CurrentUser,
 ):
 
     if user_id != current_user.id:
         raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN,
-            detail='Not enough permissions'
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
     await db_session.delete(current_user)
     await db_session.commit()
     return {'message': 'User deleted'}
 
+
 @router.post('/token', response_model=schemas.Token)
 async def get_access_token(
-   db_session: DBSession,
-   form_data: OAuth2PasswordRequestForm = Depends(),
+    db_session: DBSession,
+    form_data: OAuth2PasswordRequestForm = Depends(),
 ):
-    user = await db_session.scalar(select(models.User).where(models.User.email == form_data.username))
+    user = await db_session.scalar(
+        select(models.User).where(models.User.email == form_data.username)
+    )
     if not user:
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Incorrect email or password'
+            detail='Incorrect email or password',
         )
     if not verify_password(form_data.password, user.password):
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,
-            detail='Incorrect email or password'
+            detail='Incorrect email or password',
         )
     token = create_access_token({'sub': user.email})
     return {'access_token': token, 'token_type': 'bearer'}

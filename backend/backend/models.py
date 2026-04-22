@@ -1,9 +1,16 @@
 from datetime import datetime
 from sqlalchemy import ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column, mapped_as_dataclass, registry, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    mapped_as_dataclass,
+    registry,
+    relationship,
+)
 
 
 table_registry = registry()
+
 
 @mapped_as_dataclass(table_registry)
 class Expense:
@@ -19,12 +26,13 @@ class Expense:
     user: Mapped['User'] = relationship(
         back_populates='expenses', init=False, lazy='selectin'
     )
-    created_at: Mapped[datetime] = mapped_column (
+    created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
-    updated_at: Mapped[datetime] = mapped_column (
+    updated_at: Mapped[datetime] = mapped_column(
         init=False, onupdate=func.now(), server_default=func.now()
     )
+
 
 @mapped_as_dataclass(table_registry)
 class User:
@@ -38,10 +46,9 @@ class User:
         back_populates='user', init=False, lazy='selectin'
     )
 
-    created_at: Mapped[datetime] = mapped_column (
+    created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
-    updated_at: Mapped[datetime] = mapped_column (
+    updated_at: Mapped[datetime] = mapped_column(
         init=False, onupdate=func.now(), server_default=func.now()
     )
-
