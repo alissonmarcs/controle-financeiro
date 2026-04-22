@@ -165,3 +165,28 @@ def test_get_access_token(client, db_user):
     assert 'access_token' in response_json
     assert 'token_type' in response_json
     assert response_json['token_type'] == 'bearer' 
+
+def test_try_get_token_with_invalid_email_should_return_unauthorized(client):
+    response = client.post(
+        '/token',
+        data={
+            'username': 'jj@gmail.com',
+            'password': 'jj',
+        }
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {
+            'detail': 'Incorrect email or password'
+    }
+
+def test_invalid_password(client, db_user):
+    response = client.post(
+        '/token',
+        data={
+            'username': db_user.email,
+            'password': 'demo'
+        }
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
