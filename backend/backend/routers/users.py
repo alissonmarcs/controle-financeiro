@@ -150,3 +150,11 @@ async def get_access_token(
         )
     token = create_access_token({'sub': user.email})
     return {'access_token': token, 'token_type': 'bearer'}
+
+
+@router.get('/refresh_token', response_model=schemas.Token)
+async def refresh_token(
+    current_user: CurrentUser,
+):
+    token = create_access_token({'sub': current_user.email})
+    return {'access_token': token, 'token_type': 'bearer'}

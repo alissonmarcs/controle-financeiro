@@ -179,3 +179,14 @@ def test_invalid_password(client, db_user):
     )
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_refresh_token_should_return_new_token(client, token):
+    response = client.get(
+        '/refresh_token',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in response.json()
+    assert response.json()['token_type'] == 'bearer'
