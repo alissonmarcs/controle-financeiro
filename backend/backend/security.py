@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from http import HTTPStatus
-from jwt import encode, decode, DecodeError
+from jwt import encode, decode, DecodeError, ExpiredSignatureError
 from pwdlib import PasswordHash
 
 from fastapi.security import OAuth2PasswordBearer
@@ -58,6 +58,9 @@ async def get_current_user(
             raise credentials_exception
 
     except DecodeError:
+        raise credentials_exception
+
+    except ExpiredSignatureError:
         raise credentials_exception
 
     user = await db_session.scalar(select(models.User).where(models.User.email == subject_email))
