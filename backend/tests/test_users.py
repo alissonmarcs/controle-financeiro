@@ -2,6 +2,8 @@ from http import HTTPStatus
 
 from backend import models, schemas
 
+from freezegun import freeze_time
+
 
 def test_create_user_should_return_created_user(client):
     response = client.post(
@@ -190,3 +192,30 @@ def test_refresh_token_should_return_new_token(client, token):
     assert response.status_code == HTTPStatus.OK
     assert 'access_token' in response.json()
     assert response.json()['token_type'] == 'bearer'
+
+
+def test_refresh_token_receiving_expired_token_should_return_unauthorized(
+    client, db_user
+):
+
+    with freeze_time('2023-07-14 12:00:00'):
+        response = client.post(
+            '/token',
+            data={
+                'username': db_user.email,
+                'password': db_user.plain_password,
+            },
+        )
+        assert response.status_code == HTTPStatus.OK
+        token = response.json()['access_token']
+
+    with freeze_time('2023-07-14 12:31:00'):
+        response = client.get(
+            '/refresh_token',
+            headers={'Authorization': f'Bearer {token}'},
+        )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {
+        'detail': 'Could not validate credentials',
+    }
