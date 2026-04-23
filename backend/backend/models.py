@@ -20,12 +20,7 @@ class Expense:
     value: Mapped[int]
     title: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str]
-    user_id: Mapped[int | None] = mapped_column(
-        ForeignKey('Users.id'), nullable=True, default=None
-    )
-    user: Mapped['User'] = relationship(
-        back_populates='expenses', init=False, lazy='selectin'
-    )
+    user_id: Mapped[int] = mapped_column(ForeignKey('Users.id'))
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
@@ -43,7 +38,9 @@ class User:
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     expenses: Mapped[list['Expense']] = relationship(
-        back_populates='user', init=False, lazy='selectin'
+        init=False,
+        lazy='selectin',
+        cascade='all, delete-orphan',
     )
 
     created_at: Mapped[datetime] = mapped_column(

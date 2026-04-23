@@ -60,8 +60,8 @@ async def expense(session):
     return item
 
 
-@pytest.fixture
-def db_user(session):
+@pytest_asyncio.fixture
+async def db_user(session):
     plain_password = '123456'
     user = User(
         username='spiderman',
@@ -69,14 +69,14 @@ def db_user(session):
         password=get_password_hash(plain_password),
     )
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    await session.commit()
+    await session.refresh(user)
     user.plain_password = plain_password
     return user
 
 
-@pytest.fixture
-def token(client, db_user):
+@pytest_asyncio.fixture
+async def token(client, db_user):
     response = client.post(
         '/token',
         data={'username': db_user.email, 'password': db_user.plain_password},
