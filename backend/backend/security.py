@@ -1,22 +1,17 @@
 from datetime import datetime, timedelta
+from http import HTTPStatus
 from zoneinfo import ZoneInfo
 
-from http import HTTPStatus
-from jwt import encode, decode, DecodeError, ExpiredSignatureError
-from pwdlib import PasswordHash
-
-from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
-
-from backend.database import get_session
-from backend import models
-
+from fastapi.security import OAuth2PasswordBearer
+from jwt import DecodeError, ExpiredSignatureError, decode, encode
+from pwdlib import PasswordHash
 from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from backend.settings import Settings
-
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend import models
+from backend.database import get_session
+from backend.settings import Settings
 
 password_hasher = PasswordHash.recommended()
 
@@ -50,6 +45,7 @@ async def get_current_user(
     db_session: AsyncSession = Depends(get_session),
     token: str = Depends(token_extractor),
 ):
+
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
         detail='Could not validate credentials',

@@ -1,22 +1,17 @@
-import pytest
-from backend.models import table_registry, Expense, User
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session
 from contextlib import contextmanager
 from datetime import datetime
 
-from backend.security import get_password_hash
+import pytest
+import pytest_asyncio
+from fastapi.testclient import TestClient
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.pool import StaticPool
 
 from backend.app import app
 from backend.database import get_session
-
-from sqlalchemy.pool import StaticPool
-
-from fastapi.testclient import TestClient
-
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-
-import pytest_asyncio
+from backend.models import Expense, User, table_registry
+from backend.security import get_password_hash
 
 
 @pytest.fixture
@@ -50,13 +45,18 @@ async def session():
 
 
 @pytest_asyncio.fixture
-async def expense(session):
+async def expense(session, db_user):
     item = Expense(
-        title='demo title', description='demo description', value=4242
+        user_id=db_user.id,
+        title='demo title',
+        description='demo description',
+        value=4242,
     )
     session.add(item)
     await session.commit()
     await session.refresh(item)
+    await session.refresh(db_user)
+
     return item
 
 
@@ -101,6 +101,6 @@ def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
     event.remove(model, 'before_insert', fake_time_hook)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 def mock_db_time():
     return _mock_db_time

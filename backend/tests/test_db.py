@@ -1,9 +1,9 @@
-from backend.models import Expense, User
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from dataclasses import asdict
 
 import pytest
+from sqlalchemy import select
+
+from backend.models import Expense, User
 
 
 @pytest.mark.asyncio
@@ -73,6 +73,8 @@ async def test_db_user_expenses_relationship(session, db_user):
     await session.refresh(expense)
     await session.refresh(db_user)
 
-    user_query = await session.scalar(select(User).where(User.id == db_user.id))
+    user_query = await session.scalar(
+        select(User).where(User.id == db_user.id)
+    )
 
     assert user_query.expenses == [expense]

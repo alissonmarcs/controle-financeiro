@@ -1,13 +1,13 @@
 from datetime import datetime
+
 from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import (
     Mapped,
-    mapped_column,
     mapped_as_dataclass,
+    mapped_column,
     registry,
     relationship,
 )
-
 
 table_registry = registry()
 

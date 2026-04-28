@@ -1,12 +1,9 @@
-from jwt import decode
-
-from backend.security import create_access_token
-
-from backend.security import settings
-
 from http import HTTPStatus
 
 from freezegun import freeze_time
+from jwt import decode
+
+from backend.security import create_access_token, settings
 
 
 def test_jwt():

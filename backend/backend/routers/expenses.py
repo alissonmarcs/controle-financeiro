@@ -1,25 +1,23 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
-from backend.schemas import (
-    Expense,
-    ExpenseDBItem,
-    ExpenseDB,
-    Message,
-    Pagination,
-)
-
 from http import HTTPStatus
-
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from backend.database import get_session
-
-from backend import models
-
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend import models
+from backend.database import get_session
+from backend.schemas import (
+    Expense,
+    ExpenseDB,
+    ExpenseDBItem,
+    Message,
+)
+from backend.security import get_current_user
+
 DBSession = Annotated[AsyncSession, Depends(get_session)]
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
 
 router = APIRouter()
 
@@ -27,7 +25,9 @@ router = APIRouter()
 @router.post(
     '/expenses/', response_model=ExpenseDBItem, status_code=HTTPStatus.CREATED
 )
-async def create_expense(body: Expense, db_session: DBSession):
+async def create_expense(
+    body: Expense, db_session: DBSession, user: CurrentUser
+):
 
     query_result = await db_session.scalar(
         select(models.Expense).where((models.Expense.title == body.title))
@@ -39,7 +39,10 @@ async def create_expense(body: Expense, db_session: DBSession):
         )
 
     new_expense = models.Expense(
-        title=body.title, description=body.description, value=body.value
+        user_id=user.id,
+        title=body.title,
+        description=body.description,
+        value=body.value,
     )
     db_session.add(new_expense)
     await db_session.commit()
@@ -49,19 +52,16 @@ async def create_expense(body: Expense, db_session: DBSession):
 
 
 @router.get('/expenses/', response_model=ExpenseDB)
-async def list_expenses(
-    db_session: DBSession, paginator: Annotated[Pagination, Query()]
-):
-    query_result = await db_session.scalars(
-        select(models.Expense).offset(paginator.offset).limit(paginator.limit)
-    )
-    expenses = query_result.all()
-    return {'expenses': expenses}
+async def list_expenses(db_session: DBSession, user: CurrentUser):
+    return {'expenses': user.expenses}
 
 
 @router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)
 async def update_expense(
-    expense_id: int, body: Expense, db_session: DBSession
+    expense_id: int,
+    body: Expense,
+    db_session: DBSession,
+    user: CurrentUser,
 ):
     expense = await db_session.scalar(
         select(models.Expense).where(models.Expense.id == expense_id)
@@ -70,6 +70,11 @@ async def update_expense(
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
         )
+    if user.id != expense.user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='User not own expense'
+        )
+
     try:
         expense.value = body.value
         expense.title = body.title

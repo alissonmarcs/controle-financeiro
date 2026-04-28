@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
-from backend import models, schemas
-
 from freezegun import freeze_time
+
+from backend import schemas
 
 
 def test_create_user_should_return_created_user(client):
@@ -117,7 +117,7 @@ def test_update_user_should_return_conflict(client, db_user, token):
     client.post('/users/', json=user2)
 
     response = client.put(
-        f'/users/1',
+        '/users/1',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': user2['username'],

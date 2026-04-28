@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from .routers import expenses
-from .routers import users
+
+from .routers import expenses, users
 
 app = FastAPI()
 app.include_router(expenses.router)

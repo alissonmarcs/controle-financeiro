@@ -1,28 +1,22 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from http import HTTPStatus
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
-
-from backend import schemas
-from backend import models
+from sqlalchemy.exc import IntegrityError
 
 # from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend import models, schemas
 from backend.database import get_session
-from backend.security import get_current_user
-
-from http import HTTPStatus
-
-from sqlalchemy.exc import IntegrityError
-
 from backend.security import (
+    create_access_token,
+    get_current_user,
     get_password_hash,
     verify_password,
-    create_access_token,
 )
-
-from fastapi.security import OAuth2PasswordRequestForm
-
-from typing import Annotated
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 CurrentUser = Annotated[models.User, Depends(get_current_user)]
