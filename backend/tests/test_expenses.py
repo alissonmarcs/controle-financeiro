@@ -2,55 +2,37 @@ from http import HTTPStatus
 
 from backend.schemas import ExpenseDBItem
 
-import factory.fuzzy
 
-from backend.models import Expense, User
-from backend.security import get_password_hash, verify_password
+from backend.security import verify_password
 
 import pytest
 
-class UserFactory(factory.Factory):
-    class Meta:
-        model = User
+from factory.alchemy import SQLAlchemyModelFactory
 
-    username = factory.Sequence(lambda n: f'test{n}')
-    email = factory.LazyAttribute(lambda obj: f'{obj.username}@gmail.com')
-    password = factory.LazyAttribute(lambda obj: obj.email) 
 
-class ExpenseFactory(factory.Factory):
-    class Meta:
-        model = Expense
+from .factorys import UserFactory, ExpenseFactory
 
-    value = factory.Faker('pyint', min_value=1, max_value=1000)   
-    title = factory.Faker('text')
-    description = factory.Faker('text', max_nb_chars=119)
-    user_id = 1
 
 @pytest.mark.asyncio
-async def test_demo(client, session, db_user, token):
+async def test_update_user_user_not_own_exense_should_return_forbidden(
+    client, session, token
+):
 
-    user_plain_password = 'teste'
-    user2 = UserFactory(password=get_password_hash(user_plain_password))
-    session.add(user2)
-    await session.commit()
-    await session.refresh(user2)
-
-    expense = ExpenseFactory(user_id=user2.id)
-    session.add(expense)
-    await session.commit()
-    await session.refresh(expense)
+    # user that own token is not the user that own the bellow expense
+    expense = await ExpenseFactory(session=session)
 
     response = client.put(
         f'/expenses/{expense.id}',
-            headers={'Authorization': f'Bearer {token}'},
-            json={
-                'title': 'teste42',
-                'description': 'teste43',
-                'value': 500,
-            }
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'title': 'teste42',
+            'description': 'teste43',
+            'value': 500,
+        },
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
+
 
 def test_create_expense_returns_201_and_created_expense(client, token):
     payload = {
@@ -144,7 +126,6 @@ def test_update_expense_no_existent_expense_should_return_not_found(
     )
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'User not found'}
-
 
 
 def test_update_expense_existing_title_should_return_conflict(
