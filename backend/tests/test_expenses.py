@@ -4,13 +4,15 @@ from backend.schemas import ExpenseDBItem
 
 
 from backend.security import verify_password
+from backend.models import Expense, User
 
 import pytest
 
 from factory.alchemy import SQLAlchemyModelFactory
 
+from sqlalchemy import select
 
-from .factorys import UserFactory, ExpenseFactory
+from .factorys import UserFactory, ExpenseFactory, ExpensePayloadFactory
 
 
 @pytest.mark.asyncio
@@ -21,25 +23,20 @@ async def test_update_user_user_not_own_exense_should_return_forbidden(
     # user that own token is not the user that own the bellow expense
     expense = await ExpenseFactory(session=session)
 
+    to_update_expense = ExpensePayloadFactory()
+
     response = client.put(
         f'/expenses/{expense.id}',
         headers={'Authorization': f'Bearer {token}'},
-        json={
-            'title': 'teste42',
-            'description': 'teste43',
-            'value': 500,
-        },
+        json=to_update_expense,
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 def test_create_expense_returns_201_and_created_expense(client, token):
-    payload = {
-        'title': 'Mercado',
-        'description': 'Compra semanal',
-        'value': 250,
-    }
+
+    payload = ExpensePayloadFactory()
 
     response = client.post(
         '/expenses/',
@@ -48,23 +45,15 @@ def test_create_expense_returns_201_and_created_expense(client, token):
     )
 
     assert response.status_code == HTTPStatus.CREATED
-    assert response.json() == {
-        'id': 1,
-        'title': 'Mercado',
-        'description': 'Compra semanal',
-        'value': 250,
-    }
+    payload['id'] = 1
+    assert response.json() == payload
 
 
-def test_create_expense_should_return_409_if_title_exists(
+def test_create_expense_duplicate_title_should_return_409(
     client, token, expense
 ):
 
-    payload = {
-        'title': expense.title,
-        'description': 'demo description',
-        'value': 4242,
-    }
+    payload = ExpensePayloadFactory(title=expense.title)
 
     response = client.post(
         '/expenses/',
@@ -94,62 +83,46 @@ def test_list_expenses_should_return_list_which_one_expense(
 
 
 def test_update_expense_should_return_updated_expense(client, expense, token):
-    body = {
-        'title': 'mensalidade',
-        'description': 'mensalidade estacionamento perto da 42',
-        'value': 300,
-    }
+
+    new_expense = ExpensePayloadFactory()
+
     response = client.put(
-        '/expenses/1', json=body, headers={'authorization': f'bearer {token}'}
+        '/expenses/1',
+        json=new_expense,
+        headers={'authorization': f'bearer {token}'},
     )
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'id': 1,
-        'title': 'mensalidade',
-        'description': 'mensalidade estacionamento perto da 42',
-        'value': 300,
-    }
+    new_expense['id'] = 1
+    assert response.json() == new_expense
 
 
 def test_update_expense_no_existent_expense_should_return_not_found(
-    client, expense, token
+    client, token
 ):
-    body = {
-        'title': 'mensalidade',
-        'description': 'mensalidade estacionamento perto da 42',
-        'value': 300,
-    }
+
+    new_expense = ExpensePayloadFactory()
+
     response = client.put(
         '/expenses/999',
-        json=body,
+        json=new_expense,
         headers={'authorization': f'bearer {token}'},
     )
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_update_expense_existing_title_should_return_conflict(
-    client, expense, token
+@pytest.mark.asyncio
+async def test_update_expense_existing_title_should_return_conflict(
+    client, expense, token, db_user, session
 ):
-    new_expense = {
-        'title': 'mensalidade',
-        'description': 'mensalidade estacionamento perto da 42',
-        'value': 300,
-    }
 
-    response = client.post(
-        '/expenses/',
-        json=new_expense,
-        headers={'authorization': f'bearer {token}'},
-    )
+    expense_2 = await ExpenseFactory(session=session)
+
+    to_update_first_expense = ExpensePayloadFactory(title=expense_2.title)
 
     response = client.put(
         f'/expenses/{expense.id}',
-        json={
-            'title': 'mensalidade',
-            'description': 'ida aos correios',
-            'value': 200,
-        },
+        json=to_update_first_expense,
         headers={'authorization': f'bearer {token}'},
     )
     assert response.status_code == HTTPStatus.CONFLICT

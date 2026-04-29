@@ -28,9 +28,9 @@ class UserFactory(SQLAlchemyModelFactory):
     async def create_batch(cls, size, **kwargs):
         return [await cls.create(**kwargs) for _ in range(size)]
 
-    username = factory.Sequence(lambda n: f'test{n}')
-    email = factory.LazyAttribute(lambda obj: f'{obj.username}@gmail.com')
-    plain_password = factory.Sequence(lambda n: f'pass{n}')
+    username = factory.Faker(provider='user_name', locale='pt_BR')
+    email = factory.Faker(provider='email', locale='pt_BR')
+    plain_password = factory.Faker(provider='password', locale='pt_BR')
     password = factory.LazyAttribute(
         lambda obj: get_password_hash(obj.plain_password)
     )
@@ -60,5 +60,14 @@ class ExpenseFactory(factory.Factory):
         return [await cls.create(**kwargs) for _ in range(size)]
 
     value = factory.Faker('pyint', min_value=1, max_value=1000)
-    title = factory.Faker('text')
-    description = factory.Faker('text', max_nb_chars=119)
+    title = factory.Faker('sentence', nb_words=4)
+    description = factory.Faker('sentence', nb_words=10)
+
+
+class ExpensePayloadFactory(factory.Factory):
+    class Meta:
+        model = dict
+
+    title = factory.Faker('sentence', locale='pt_BR', nb_words=4)
+    description = factory.Faker('sentence', locale='pt_BR', nb_words=4)
+    value = factory.Faker('pyint', min_value=1, max_value=1000)
