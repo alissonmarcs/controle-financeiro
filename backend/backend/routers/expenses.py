@@ -90,7 +90,11 @@ async def update_expense(
 
 
 @router.delete('/expenses/{expense_id}', response_model=Message)
-async def delete_expense(expense_id: int, db_session: DBSession):
+async def delete_expense(
+    expense_id: int, db_session: DBSession, user: CurrentUser
+):
+
+    # print(user)
 
     expense = await db_session.scalar(
         select(models.Expense).where(models.Expense.id == expense_id)

@@ -62,6 +62,7 @@ async def expense(session, db_user):
 
 @pytest_asyncio.fixture
 async def db_user(session):
+    print('\n\n--DB')
     plain_password = '123456'
     user = User(
         username='spiderman',

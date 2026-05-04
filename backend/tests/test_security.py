@@ -1,9 +1,11 @@
 from http import HTTPStatus
 
+import pytest
+from fastapi import HTTPException
 from freezegun import freeze_time
 from jwt import decode
 
-from backend.security import create_access_token, settings
+from backend.security import create_access_token, get_current_user, settings
 
 
 def test_jwt():
@@ -54,3 +56,25 @@ def test_token_expired_after_time(client, db_user):
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
         assert response.json() == {'detail': 'Could not validate credentials'}
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_token_with_no_sub(client, session):
+
+    token = create_access_token({'no_sub': 'any value'})
+
+    with pytest.raises(HTTPException) as exp:
+        user = await get_current_user(db_session=session, token=token)
+
+    assert 'Could not validate credentials' in str(exp.value)
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_non_existent_email(client, session):
+
+    token = create_access_token({'sub': 'demo@gmail.com'})
+
+    with pytest.raises(HTTPException) as exp:
+        user = await get_current_user(db_session=session, token=token)
+
+    assert 'Could not validate credentials' in str(exp.value)

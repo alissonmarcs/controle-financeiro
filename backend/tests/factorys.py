@@ -1,8 +1,8 @@
 import factory
-
 from factory.alchemy import SQLAlchemyModelFactory
-from backend.security import get_password_hash
+
 from backend.models import Expense, User
+from backend.security import get_password_hash
 
 
 class UserFactory(SQLAlchemyModelFactory):
@@ -45,7 +45,7 @@ class ExpenseFactory(factory.Factory):
 
         session_test = kwargs.pop('session')
 
-        if not 'user_id' in kwargs:
+        if 'user_id' not in kwargs:
             user = await UserFactory(session=session_test)
             kwargs['user_id'] = user.id
 

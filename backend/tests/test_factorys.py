@@ -1,12 +1,10 @@
-from .factorys import UserFactory, ExpenseFactory
-
 import pytest
+from sqlalchemy import select
 
+from backend.models import User
 from backend.security import verify_password
 
-from backend.models import User, Expense
-
-from sqlalchemy import select
+from .factorys import ExpenseFactory, UserFactory
 
 
 @pytest.mark.asyncio

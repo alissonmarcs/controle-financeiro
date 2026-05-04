@@ -1,18 +1,10 @@
 from http import HTTPStatus
 
-from backend.schemas import ExpenseDBItem
-
-
-from backend.security import verify_password
-from backend.models import Expense, User
-
 import pytest
 
-from factory.alchemy import SQLAlchemyModelFactory
+from backend.schemas import ExpenseDBItem
 
-from sqlalchemy import select
-
-from .factorys import UserFactory, ExpenseFactory, ExpensePayloadFactory
+from .factorys import ExpenseFactory, ExpensePayloadFactory
 
 
 @pytest.mark.asyncio
@@ -129,7 +121,20 @@ async def test_update_expense_existing_title_should_return_conflict(
     assert response.json() == {'detail': 'Title already exists'}
 
 
-def test_delete_expense_should_return_no_content(client, expense):
-    response = client.delete(f'/expenses/{expense.id}')
+def test_delete_expense_should_return_no_contenr(client, expense, token):
+
+    response = client.delete(
+        f'/expenses/{expense.id}', headers={'authorization': f'bearer {token}'}
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Expense deleted'}
+
+
+def test_delete_expense_no_existent_id_should_return_not_found(
+    client, db_user, token, expense
+):
+    response = client.delete(
+        '/expenses/42', headers={'authorization': f'bearer {token}'}
+    )
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {'detail': 'Expense not found'}
