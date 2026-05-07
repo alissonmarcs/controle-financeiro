@@ -1,0 +1,26 @@
+services:
+  controle_financeiro_db:
+    image: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_DB: app_db
+      POSTGRES_PASSWORD: app_password
+    ports:
+      - '5432:5432'
+
+  controle_financeiro_app:
+    image: controle_financeiro_app
+    entrypoint: ./entrypoint_app.sh
+    build:
+      dockerfile: Dockerfile_app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - controle_financeiro_db
+    environment:
+      DATABASE_URL: postgresql+psycopg://app_user:app_password@controle_financeiro_db:5432/app_db
+
+volumes:
+  pgdata:

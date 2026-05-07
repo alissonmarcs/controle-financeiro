@@ -4,7 +4,7 @@ from datetime import datetime
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-from sqlalchemy import event
+from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -12,6 +12,8 @@ from backend.app import app
 from backend.database import get_session
 from backend.models import Expense, User, table_registry
 from backend.security import get_password_hash
+
+from testcontainers.postgres import PostgresContainer
 
 
 @pytest.fixture
@@ -26,14 +28,16 @@ def client(session):
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
-async def session():
-    engine = create_async_engine(
-        'sqlite+aiosqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-    )
+@pytest.fixture(scope='session')
+def engine():
+    with PostgresContainer('postgres:16', driver='psycopg') as postgress:
+        pg_url = postgress.get_connection_url()
+        engine = create_async_engine(pg_url)
+        yield engine
 
+
+@pytest_asyncio.fixture
+async def session(engine):
     async with engine.begin() as transaction:
         await transaction.run_sync(table_registry.metadata.create_all)
 
@@ -41,7 +45,9 @@ async def session():
         yield session
 
     async with engine.begin() as transaction:
-        await transaction.run_sync(table_registry.metadata.drop_all)
+        await transaction.execute(
+            text('TRUNCATE TABLE "Users" RESTART IDENTITY CASCADE')
+        )
 
 
 @pytest_asyncio.fixture
