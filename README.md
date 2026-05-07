@@ -49,11 +49,11 @@ pytest
 ### Termina a execução na primeira falha:
 
 ```bash
-pytest -q -x
+pytest -x
 ```
 
 ### Roda somente o teste que falhou na ultima execução:
 
 ```bash
-pytest --lf -q -x
+pytest --lf 
 ```
