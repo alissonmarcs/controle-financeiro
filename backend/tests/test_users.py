@@ -40,7 +40,7 @@ def test_create_user_email_not_unique_should_return_conflict(client, db_user):
 def test_get_user_should_return_user(client, db_user):
     response = client.get('/users/1')
 
-    db_user_pydantic_model = schemas.CreatedUser.model_validate(
+    db_user_pydantic_model = schemas.UserPublic.model_validate(
         db_user
     ).model_dump()
 
@@ -63,7 +63,7 @@ def test_get_users_empty_db_should_return_empty_list(client):
 def test_get_users_populated_db_should_return_populated_list(client, db_user):
     response = client.get('/users/')
 
-    db_user_pydantic_model = schemas.CreatedUser.model_validate(
+    db_user_pydantic_model = schemas.UserPublic.model_validate(
         db_user
     ).model_dump()
 
@@ -88,7 +88,7 @@ def test_update_user_should_return_updated_user(client, db_user, token):
         },
     )
 
-    updated_user = schemas.CreatedUser.model_validate(db_user).model_dump()
+    updated_user = schemas.UserPublic.model_validate(db_user).model_dump()
     assert response.status_code == HTTPStatus.OK
     assert response.json() == updated_user
 

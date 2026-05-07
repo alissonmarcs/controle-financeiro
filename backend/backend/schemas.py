@@ -26,7 +26,7 @@ class UserSchema(BaseModel):
     password: str
 
 
-class CreatedUser(BaseModel):
+class UserPublic(BaseModel):
     id: int
     username: str
     email: str
@@ -35,7 +35,7 @@ class CreatedUser(BaseModel):
 
 
 class Users(BaseModel):
-    users: list[CreatedUser]
+    users: list[UserPublic]
 
 
 class Token(BaseModel):

@@ -26,7 +26,7 @@ router = APIRouter()
 
 @router.post(
     '/users/',
-    response_model=schemas.CreatedUser,
+    response_model=schemas.UserPublic,
     status_code=HTTPStatus.CREATED,
 )
 async def create_user(body: schemas.UserSchema, db_session: DBSession):
@@ -50,7 +50,7 @@ async def create_user(body: schemas.UserSchema, db_session: DBSession):
 
 @router.get(
     '/users/{user_id}',
-    response_model=schemas.CreatedUser,
+    response_model=schemas.UserPublic,
     status_code=HTTPStatus.OK,
 )
 async def get_user(user_id: int, db_session: DBSession):
@@ -80,7 +80,7 @@ async def get_users(
 
 @router.put(
     '/users/{user_id}',
-    response_model=schemas.CreatedUser,
+    response_model=schemas.UserPublic,
     status_code=HTTPStatus.OK,
 )
 async def update_user(
