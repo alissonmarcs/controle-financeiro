@@ -1,6 +1,12 @@
 ## Como rodar o projeto ?
 
-Dependencias: `docker` e `poetry`
+Dependencias: `docker` e `poetry`.
+
+```bash
+git clone https://github.com/alissonmarcs/controle-financeiro.git
+cd controle-financeiro/backend
+touch .env
+```
 
 ### Exemplo de `.env`
 
