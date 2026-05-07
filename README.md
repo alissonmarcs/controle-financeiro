@@ -23,6 +23,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 poetry install
 poetry shell
 docker compose up -d controle_financeiro_db
+alembic upgrade head
 fastapi dev backend/app.py
 ```
 
