@@ -3,14 +3,14 @@ from dataclasses import asdict
 import pytest
 from sqlalchemy import select
 
-from backend.models import ExpenseSchema, UserSchema
+from backend.models import Expense, UserSchema
 
 
 @pytest.mark.asyncio
 async def test_db_create_expense(session, mock_db_time, db_user):
 
-    with mock_db_time(model=ExpenseSchema) as time:
-        item = ExpenseSchema(
+    with mock_db_time(model=Expense) as time:
+        item = Expense(
             user_id=db_user.id,
             value=42,
             title='estacionamento',
@@ -21,7 +21,7 @@ async def test_db_create_expense(session, mock_db_time, db_user):
         await session.refresh(item)
 
     query_result = await session.scalar(
-        select(ExpenseSchema).where(ExpenseSchema.title == 'estacionamento')
+        select(Expense).where(Expense.title == 'estacionamento')
     )
 
     assert asdict(query_result) == {
@@ -62,7 +62,7 @@ async def test_db_create_user(session, mock_db_time):
 @pytest.mark.asyncio
 async def test_db_user_expenses_relationship(session, db_user):
 
-    expense = ExpenseSchema(
+    expense = Expense(
         value=42,
         title='estacionamento',
         description='estacionamento do domingo',

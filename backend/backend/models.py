@@ -13,7 +13,7 @@ table_registry = registry()
 
 
 @mapped_as_dataclass(table_registry)
-class ExpenseSchema:
+class Expense:
     __tablename__ = 'Expenses'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
@@ -37,7 +37,7 @@ class UserSchema:
     username: Mapped[str] = mapped_column(unique=True, nullable=False)
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    expenses: Mapped[list['ExpenseSchema']] = relationship(
+    expenses: Mapped[list['Expense']] = relationship(
         init=False,
         lazy='selectin',
         cascade='all, delete-orphan',

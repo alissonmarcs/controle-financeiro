@@ -30,8 +30,8 @@ async def create_expense(
 ):
 
     query_result = await db_session.scalar(
-        select(models.ExpenseSchema).where(
-            (models.ExpenseSchema.title == body.title)
+        select(models.Expense).where(
+            (models.Expense.title == body.title)
         )
     )
 
@@ -40,7 +40,7 @@ async def create_expense(
             status_code=HTTPStatus.CONFLICT, detail='Title already exists'
         )
 
-    new_expense = models.ExpenseSchema(
+    new_expense = models.Expense(
         user_id=user.id,
         title=body.title,
         description=body.description,
@@ -66,8 +66,8 @@ async def update_expense(
     user: CurrentUser,
 ):
     expense = await db_session.scalar(
-        select(models.ExpenseSchema).where(
-            models.ExpenseSchema.id == expense_id
+        select(models.Expense).where(
+            models.Expense.id == expense_id
         )
     )
     if not expense:
@@ -99,8 +99,8 @@ async def delete_expense(
 ):
 
     expense = await db_session.scalar(
-        select(models.ExpenseSchema).where(
-            models.ExpenseSchema.id == expense_id
+        select(models.Expense).where(
+            models.Expense.id == expense_id
         )
     )
 
