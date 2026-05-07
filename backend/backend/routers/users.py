@@ -64,7 +64,7 @@ async def get_user(user_id: int, db_session: DBSession):
     return query_result
 
 
-@router.get('/users/', response_model=schemas.Users, status_code=HTTPStatus.OK)
+@router.get('/users/', response_model=schemas.UserList, status_code=HTTPStatus.OK)
 async def get_users(
     db_session: DBSession, paginator: Annotated[schemas.Pagination, Query()]
 ):

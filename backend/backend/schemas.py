@@ -34,7 +34,7 @@ class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class Users(BaseModel):
+class UserList(BaseModel):
     users: list[UserPublic]
 
 
