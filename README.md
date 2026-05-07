@@ -34,7 +34,9 @@ Para parar o containter do DB: `docker compose down controle_financeiro_db`
 docker compose up
 ```
 
-Para parar os dois containers: `docker compose down`
+Para parar e remover os dois containers e a docker network: `docker compose down`
+
+Para também remover imagens e volumes: `docker compose down --rmi all -v`
 
 ## Como rodar testes
 
