@@ -27,7 +27,7 @@ alembic upgrade head
 fastapi dev backend/app.py
 ```
 
-Para parar o containter do DB: `docker compose down controle_financeiro_db`
+Para parar e remover o containter do DB e a docker network: `docker compose down controle_financeiro_db`
 
 ### Rodando o app e o DB em containers:
 
