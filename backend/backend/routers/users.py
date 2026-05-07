@@ -19,7 +19,7 @@ from backend.security import (
 )
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[models.UserSchema, Depends(get_current_user)]
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
 
 router = APIRouter()
 
@@ -31,7 +31,7 @@ router = APIRouter()
 )
 async def create_user(body: schemas.UserSchema, db_session: DBSession):
     hashed_password = get_password_hash(body.password)
-    new_user = models.UserSchema(
+    new_user = models.User(
         username=body.username, email=body.email, password=hashed_password
     )
 
@@ -55,7 +55,7 @@ async def create_user(body: schemas.UserSchema, db_session: DBSession):
 )
 async def get_user(user_id: int, db_session: DBSession):
     query_result = await db_session.scalar(
-        select(models.UserSchema).where(models.UserSchema.id == user_id)
+        select(models.User).where(models.User.id == user_id)
     )
     if not query_result:
         raise HTTPException(
@@ -69,7 +69,7 @@ async def get_users(
     db_session: DBSession, paginator: Annotated[schemas.Pagination, Query()]
 ):
     query = await db_session.scalars(
-        select(models.UserSchema)
+        select(models.User)
         .offset(paginator.offset)
         .limit(paginator.limit)
     )
@@ -132,8 +132,8 @@ async def get_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     user = await db_session.scalar(
-        select(models.UserSchema).where(
-            models.UserSchema.email == form_data.username
+        select(models.User).where(
+            models.User.email == form_data.username
         )
     )
     if not user:

@@ -17,7 +17,7 @@ from backend.schemas import (
 from backend.security import get_current_user
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[models.UserSchema, Depends(get_current_user)]
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
 
 router = APIRouter()
 

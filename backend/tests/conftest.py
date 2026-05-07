@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.app import app
 from backend.database import get_session
-from backend.models import Expense, UserSchema, table_registry
+from backend.models import Expense, User, table_registry
 from backend.security import get_password_hash
 
 from testcontainers.postgres import PostgresContainer
@@ -69,7 +69,7 @@ async def expense(session, db_user):
 @pytest_asyncio.fixture
 async def db_user(session):
     plain_password = '123456'
-    user = UserSchema(
+    user = User(
         username='spiderman',
         email='spiderman@gmail.com',
         password=get_password_hash(plain_password),

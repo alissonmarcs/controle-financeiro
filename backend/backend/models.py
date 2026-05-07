@@ -30,7 +30,7 @@ class Expense:
 
 
 @mapped_as_dataclass(table_registry)
-class UserSchema:
+class User:
     __tablename__ = 'Users'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)

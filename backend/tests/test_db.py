@@ -3,7 +3,7 @@ from dataclasses import asdict
 import pytest
 from sqlalchemy import select
 
-from backend.models import Expense, UserSchema
+from backend.models import Expense, User
 
 
 @pytest.mark.asyncio
@@ -38,15 +38,15 @@ async def test_db_create_expense(session, mock_db_time, db_user):
 @pytest.mark.asyncio
 async def test_db_create_user(session, mock_db_time):
 
-    with mock_db_time(model=UserSchema) as time:
-        user = UserSchema(
+    with mock_db_time(model=User) as time:
+        user = User(
             username='marvin', email='marvin@42.com', password='123456'
         )
         session.add(user)
         await session.commit()
 
     search = await session.scalar(
-        select(UserSchema).where(UserSchema.username == 'marvin')
+        select(User).where(User.username == 'marvin')
     )
     assert asdict(search) == {
         'id': 1,
@@ -74,7 +74,7 @@ async def test_db_user_expenses_relationship(session, db_user):
     await session.refresh(db_user)
 
     user_query = await session.scalar(
-        select(UserSchema).where(UserSchema.id == db_user.id)
+        select(User).where(User.id == db_user.id)
     )
 
     assert user_query.expenses == [expense]

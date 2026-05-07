@@ -1,13 +1,13 @@
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
 
-from backend.models import Expense, UserSchema
+from backend.models import Expense, User
 from backend.security import get_password_hash
 
 
 class UserFactory(SQLAlchemyModelFactory):
     class Meta:
-        model = UserSchema
+        model = User
 
     @classmethod
     async def _create(cls, model_class, *args, **kwargs):
