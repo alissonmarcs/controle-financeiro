@@ -9,28 +9,30 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend import models
 from backend.database import get_session
 from backend.schemas import (
-    Expense,
-    ExpenseDB,
-    ExpenseDBItem,
+    ExpenseSchema,
+    ExpenseList,
+    ExpensePublic,
     Message,
 )
 from backend.security import get_current_user
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[models.User, Depends(get_current_user)]
+CurrentUser = Annotated[models.UserSchema, Depends(get_current_user)]
 
 router = APIRouter()
 
 
 @router.post(
-    '/expenses/', response_model=ExpenseDBItem, status_code=HTTPStatus.CREATED
+    '/expenses/', response_model=ExpensePublic, status_code=HTTPStatus.CREATED
 )
 async def create_expense(
-    body: Expense, db_session: DBSession, user: CurrentUser
+    body: ExpenseSchema, db_session: DBSession, user: CurrentUser
 ):
 
     query_result = await db_session.scalar(
-        select(models.Expense).where((models.Expense.title == body.title))
+        select(models.ExpenseSchema).where(
+            (models.ExpenseSchema.title == body.title)
+        )
     )
 
     if query_result:
@@ -38,7 +40,7 @@ async def create_expense(
             status_code=HTTPStatus.CONFLICT, detail='Title already exists'
         )
 
-    new_expense = models.Expense(
+    new_expense = models.ExpenseSchema(
         user_id=user.id,
         title=body.title,
         description=body.description,
@@ -51,20 +53,22 @@ async def create_expense(
     return new_expense
 
 
-@router.get('/expenses/', response_model=ExpenseDB)
+@router.get('/expenses/', response_model=ExpenseList)
 async def list_expenses(db_session: DBSession, user: CurrentUser):
     return {'expenses': user.expenses}
 
 
-@router.put('/expenses/{expense_id}', response_model=ExpenseDBItem)
+@router.put('/expenses/{expense_id}', response_model=ExpensePublic)
 async def update_expense(
     expense_id: int,
-    body: Expense,
+    body: ExpenseSchema,
     db_session: DBSession,
     user: CurrentUser,
 ):
     expense = await db_session.scalar(
-        select(models.Expense).where(models.Expense.id == expense_id)
+        select(models.ExpenseSchema).where(
+            models.ExpenseSchema.id == expense_id
+        )
     )
     if not expense:
         raise HTTPException(
@@ -95,7 +99,9 @@ async def delete_expense(
 ):
 
     expense = await db_session.scalar(
-        select(models.Expense).where(models.Expense.id == expense_id)
+        select(models.ExpenseSchema).where(
+            models.ExpenseSchema.id == expense_id
+        )
     )
 
     if not expense:

@@ -19,7 +19,7 @@ from backend.security import (
 )
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
-CurrentUser = Annotated[models.User, Depends(get_current_user)]
+CurrentUser = Annotated[models.UserSchema, Depends(get_current_user)]
 
 router = APIRouter()
 
@@ -29,9 +29,9 @@ router = APIRouter()
     response_model=schemas.CreatedUser,
     status_code=HTTPStatus.CREATED,
 )
-async def create_user(body: schemas.User, db_session: DBSession):
+async def create_user(body: schemas.UserSchema, db_session: DBSession):
     hashed_password = get_password_hash(body.password)
-    new_user = models.User(
+    new_user = models.UserSchema(
         username=body.username, email=body.email, password=hashed_password
     )
 
@@ -55,7 +55,7 @@ async def create_user(body: schemas.User, db_session: DBSession):
 )
 async def get_user(user_id: int, db_session: DBSession):
     query_result = await db_session.scalar(
-        select(models.User).where(models.User.id == user_id)
+        select(models.UserSchema).where(models.UserSchema.id == user_id)
     )
     if not query_result:
         raise HTTPException(
@@ -69,7 +69,9 @@ async def get_users(
     db_session: DBSession, paginator: Annotated[schemas.Pagination, Query()]
 ):
     query = await db_session.scalars(
-        select(models.User).offset(paginator.offset).limit(paginator.limit)
+        select(models.UserSchema)
+        .offset(paginator.offset)
+        .limit(paginator.limit)
     )
 
     users = query.all()
@@ -83,7 +85,7 @@ async def get_users(
 )
 async def update_user(
     user_id: int,
-    body: schemas.User,
+    body: schemas.UserSchema,
     db_session: DBSession,
     current_user: CurrentUser,
 ):
@@ -130,7 +132,9 @@ async def get_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     user = await db_session.scalar(
-        select(models.User).where(models.User.email == form_data.username)
+        select(models.UserSchema).where(
+            models.UserSchema.email == form_data.username
+        )
     )
     if not user:
         raise HTTPException(

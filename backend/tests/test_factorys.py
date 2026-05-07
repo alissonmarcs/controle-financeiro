@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import select
 
-from backend.models import User
+from backend.models import UserSchema
 from backend.security import verify_password
 
 from .factorys import ExpenseFactory, UserFactory
@@ -45,6 +45,8 @@ async def test_ExpenseFactory_create_single_persisted_in_db(session):
 async def test_ExpenseFactory_should_create_user_persisted_in_db(session):
     expense = await ExpenseFactory(session=session)
 
-    user = await session.scalar(select(User).where(User.id == expense.user_id))
+    user = await session.scalar(
+        select(UserSchema).where(UserSchema.id == expense.user_id)
+    )
 
     assert user.expenses == [expense]

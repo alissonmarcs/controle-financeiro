@@ -1,26 +1,26 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class Expense(BaseModel):
+class ExpenseSchema(BaseModel):
     title: str
     description: str = Field(min_length=1, max_length=120)
     value: int
 
 
-class ExpenseDBItem(Expense):
+class ExpensePublic(ExpenseSchema):
     id: int = Field(ge=1)
     model_config = ConfigDict(from_attributes=True)
 
 
-class ExpenseDB(BaseModel):
-    expenses: list[ExpenseDBItem]
+class ExpenseList(BaseModel):
+    expenses: list[ExpensePublic]
 
 
 class Message(BaseModel):
     message: str
 
 
-class User(BaseModel):
+class UserSchema(BaseModel):
     username: str
     email: str
     password: str

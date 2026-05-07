@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
-from backend.schemas import ExpenseDBItem
+from backend.schemas import ExpensePublic
 
 from .factorys import ExpenseFactory, ExpensePayloadFactory
 
@@ -66,7 +66,7 @@ def test_list_expenses_should_return_empty_list_if_no_expenses(client, token):
 def test_list_expenses_should_return_list_which_one_expense(
     client, expense, token
 ):
-    expense_schema = ExpenseDBItem.model_validate(expense).model_dump()
+    expense_schema = ExpensePublic.model_validate(expense).model_dump()
     response = client.get(
         '/expenses/', headers={'authorization': f'bearer {token}'}
     )
