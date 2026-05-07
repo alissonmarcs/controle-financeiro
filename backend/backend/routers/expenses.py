@@ -30,9 +30,7 @@ async def create_expense(
 ):
 
     query_result = await db_session.scalar(
-        select(models.Expense).where(
-            (models.Expense.title == body.title)
-        )
+        select(models.Expense).where((models.Expense.title == body.title))
     )
 
     if query_result:
@@ -66,9 +64,7 @@ async def update_expense(
     user: CurrentUser,
 ):
     expense = await db_session.scalar(
-        select(models.Expense).where(
-            models.Expense.id == expense_id
-        )
+        select(models.Expense).where(models.Expense.id == expense_id)
     )
     if not expense:
         raise HTTPException(
@@ -99,9 +95,7 @@ async def delete_expense(
 ):
 
     expense = await db_session.scalar(
-        select(models.Expense).where(
-            models.Expense.id == expense_id
-        )
+        select(models.Expense).where(models.Expense.id == expense_id)
     )
 
     if not expense:

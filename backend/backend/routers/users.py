@@ -64,14 +64,14 @@ async def get_user(user_id: int, db_session: DBSession):
     return query_result
 
 
-@router.get('/users/', response_model=schemas.UserList, status_code=HTTPStatus.OK)
+@router.get(
+    '/users/', response_model=schemas.UserList, status_code=HTTPStatus.OK
+)
 async def get_users(
     db_session: DBSession, paginator: Annotated[schemas.Pagination, Query()]
 ):
     query = await db_session.scalars(
-        select(models.User)
-        .offset(paginator.offset)
-        .limit(paginator.limit)
+        select(models.User).offset(paginator.offset).limit(paginator.limit)
     )
 
     users = query.all()
@@ -132,9 +132,7 @@ async def get_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     user = await db_session.scalar(
-        select(models.User).where(
-            models.User.email == form_data.username
-        )
+        select(models.User).where(models.User.email == form_data.username)
     )
     if not user:
         raise HTTPException(

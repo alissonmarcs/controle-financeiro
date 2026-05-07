@@ -45,8 +45,6 @@ async def test_ExpenseFactory_create_single_persisted_in_db(session):
 async def test_ExpenseFactory_should_create_user_persisted_in_db(session):
     expense = await ExpenseFactory(session=session)
 
-    user = await session.scalar(
-        select(User).where(User.id == expense.user_id)
-    )
+    user = await session.scalar(select(User).where(User.id == expense.user_id))
 
     assert user.expenses == [expense]
