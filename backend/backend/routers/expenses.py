@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend import models
 from backend.database import get_session
 from backend.schemas import (
-    ExpenseSchema,
     ExpenseList,
     ExpensePublic,
+    ExpenseSchema,
     Message,
 )
 from backend.security import get_current_user
@@ -103,6 +103,13 @@ async def delete_expense(
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Expense not found',
         )
+
+    if expense.user_id != user.id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail='User not own expense',
+        )
+
     await db_session.delete(expense)
     await db_session.commit()
     return {'message': 'Expense deleted'}

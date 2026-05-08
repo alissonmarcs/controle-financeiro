@@ -3,8 +3,9 @@ from http import HTTPStatus
 import pytest
 
 from backend.schemas import ExpensePublic
+from backend.security import create_access_token
 
-from .factorys import ExpenseFactory, ExpensePayloadFactory
+from .factorys import ExpenseFactory, ExpensePayloadFactory, UserFactory
 
 
 @pytest.mark.asyncio
@@ -138,3 +139,20 @@ def test_delete_expense_no_existent_id_should_return_not_found(
     )
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Expense not found'}
+
+
+@pytest.mark.asyncio
+async def test_delete_expense_user_not_own_should_return_forbidden(
+    client, session
+):
+    user1 = await UserFactory(session=session)
+    user2 = await UserFactory(session=session)
+    expense = await ExpenseFactory(user_id=user1.id, session=session)
+
+    user2_jwt = create_access_token({'sub': user2.email})
+    response = client.delete(
+        f'/expenses/{expense.id}',
+        headers={'authorization': f'bearer {user2_jwt}'},
+    )
+
+    assert response.status_code == HTTPStatus.FORBIDDEN

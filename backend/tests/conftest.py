@@ -6,14 +6,12 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import StaticPool
+from testcontainers.postgres import PostgresContainer
 
 from backend.app import app
 from backend.database import get_session
 from backend.models import Expense, User, table_registry
 from backend.security import get_password_hash
-
-from testcontainers.postgres import PostgresContainer
 
 
 @pytest.fixture
