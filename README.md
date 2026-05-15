@@ -1,3 +1,21 @@
+## Sobre
+
+É uma API de controle financeiro simples feita para praticar Python com FastAPI.
+
+Tem endpoints CRUD em `/users/` para usuários.
+E endpoints CRUD em `/expenses/` para despesas.
+
+Após rodar o projeto, aparecerá o link para a documentação detalhada.
+
+Foi usado as seguintes ferramentas:
+
+- FastAPI
+- Pydantic
+- SQLAlchemy
+- Postgres
+- Docker
+- Pytest, faker, factory-boy
+
 ## Como rodar o projeto ?
 
 Dependências: `docker` e `poetry`.
