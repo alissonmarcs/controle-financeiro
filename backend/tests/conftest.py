@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 from datetime import datetime
 
 import pytest
@@ -89,8 +89,8 @@ async def token(client, db_user):
     return response.json()['access_token']
 
 
-@contextmanager
-def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
+@asynccontextmanager
+async def _mock_db_time(*, model, time=datetime(2024, 1, 1)):
 
     def fake_time_hook(mapper, connectionn, target):
         if hasattr(target, 'created_at'):

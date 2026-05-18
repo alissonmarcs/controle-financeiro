@@ -4,77 +4,47 @@ import pytest
 from sqlalchemy import select
 
 from backend.models import Expense, User
+from .factorys import UserFactory, ExpenseFactory
 
 
 @pytest.mark.asyncio
 async def test_db_create_expense(session, mock_db_time, db_user):
 
-    with mock_db_time(model=Expense) as time:
-        item = Expense(
-            user_id=db_user.id,
-            value=42,
-            title='estacionamento',
-            description='estacionamento do domingo',
-        )
-        session.add(item)
-        await session.commit()
-        await session.refresh(item)
+    async with mock_db_time(model=Expense) as time:
+        item = await ExpenseFactory(session=session, user_id=db_user.id)
+        item_created = asdict(item)
 
+    session.expunge_all()
     query_result = await session.scalar(
-        select(Expense).where(Expense.title == 'estacionamento')
+        select(Expense).where(Expense.title == item_created['title'])
     )
 
-    assert asdict(query_result) == {
-        'id': 1,
-        'value': 42,
-        'title': 'estacionamento',
-        'description': 'estacionamento do domingo',
-        'user_id': db_user.id,
-        'created_at': time,
-        'updated_at': time,
-    }
+    assert item_created == asdict(query_result)
 
 
 @pytest.mark.asyncio
 async def test_db_create_user(session, mock_db_time):
 
-    with mock_db_time(model=User) as time:
-        user = User(
-            username='marvin', email='marvin@42.com', password='123456'
-        )
-        session.add(user)
-        await session.commit()
+    async with mock_db_time(model=User) as time:
+        user = await UserFactory(session=session)
+        user_dict = asdict(user)
+        session.expunge_all()
 
     search = await session.scalar(
-        select(User).where(User.username == 'marvin')
+        select(User).where(User.username == user_dict['username'])
     )
-    assert asdict(search) == {
-        'id': 1,
-        'username': 'marvin',
-        'email': 'marvin@42.com',
-        'password': '123456',
-        'expenses': [],
-        'created_at': time,
-        'updated_at': time,
-    }
+
+    assert user_dict == asdict(search)
 
 
 @pytest.mark.asyncio
 async def test_db_user_expenses_relationship(session, db_user):
 
-    expense = Expense(
-        value=42,
-        title='estacionamento',
-        description='estacionamento do domingo',
-        user_id=db_user.id,
-    )
-    session.add(expense)
-    await session.commit()
-    await session.refresh(expense)
-    await session.refresh(db_user)
+    expense = await ExpenseFactory(session=session, user_id=db_user.id)
+    user_id = db_user.id
 
-    user_query = await session.scalar(
-        select(User).where(User.id == db_user.id)
-    )
+    session.expunge_all()
+
+    user_query = await session.scalar(select(User).where(User.id == user_id))
 
     assert user_query.expenses == [expense]
